@@ -4,12 +4,15 @@
 # Created on: 2020-08-28
 
 # Reading the data
-data <- read.csv('Employee Churn.csv')
+data_raw <- read.csv('Employee Churn.csv')
+# Source: https://www.kaggle.com/HRAnalyticRepository/employee-attrition-data
 
-# Organizing/cleaning the data
-# 1. Ensure that all dates are in the format: month/day/year
+####################################################################
+# DATA PREPARATION PLAN
+####################################################################
+# 1. Ensureing that all dates are in the format: month/day/year
 # 2. Termination date must be replaced by hire date + length of service
-# 3. Organizing employees based on 3 categorical groups regardin the number
+# 3. Organizing employees based on 3 categorical groups regarding the number
 # of years of service
 # 4. Organizing employees based on 3 categorical groups: executives, management
 # and non management
@@ -17,11 +20,22 @@ data <- read.csv('Employee Churn.csv')
 # 6. Calculate information about the age when the employee was hired to verify
 # the data consistency (Min, Max, Mean, Median)
 
-# DATA ASUMPTIONS/CORRECTIONS
+# Data assumptions/corrections
 # 1. The Employee ID column has multiple repeated and it is being assumed
 # that it is a typo
 # 2. 'Termination Date' is set as '1/1/1900' to all employees. This is incorrect
 # and it will be recalculated
 
-
+####################################################################
+# DATA PREPARATION EXECUTION
+####################################################################
+# 1. Ensure that all dates are in the format: month/day/year
+library(tidyverse)
+as_date <- function(x) format(x, format = "%m/%d/%y")
+data <- data_raw %>% mutate(recorddate_key = as_date(recorddate_key),
+           birthdate_key = as_date(birthdate_key),
+           orighiredate_key = as_date(orighiredate_key),
+           terminationdate_key = as_date(terminationdate_key))
+# 1.1 Removing the timestamp from recorddate_key
+data$recorddate_key <- format(as.POSIXct(data_raw$recorddate_key, format='%m/%d/%Y %H:%M'), format='%m/%d/%Y')
 
