@@ -45,6 +45,15 @@ data$terminationdate_key <- data$orighiredate_key + data$length_of_service * 365
 # 3. Organizing employees based on 3 categorical groups regarding the number
 # of years of service
 # The categories are: A) Short->0~5, Medium->5~15, Long->15+
-length_categ <- function(x)
-data$longevity <-
+# Defining the function that will create the categories
+length_categ <- function(x){
+  len_cat <- 'N'
+  if (x < 5) {len_cat <- 'A'}
+  else if (x >= 5 && x <= 15) {len_cat <- 'B'}
+  else if (x > 15) {len_cat <- 'C'}
+  return(len_cat)
+}
+for (i in 1:length(data$length_of_service)) {
+  data$length_categ[i] <- length_categ(data$length_of_service[i])
+}
 
