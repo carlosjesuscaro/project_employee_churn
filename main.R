@@ -22,7 +22,7 @@ data_raw <- read.csv('Employee Churn.csv')
 
 # Data assumptions/corrections
 # 1. The Employee ID column has multiple repeated and it is being assumed
-# that it is a typo
+# that it is an error
 # 2. 'Termination Date' is set as '1/1/1900' to all employees. This is incorrect
 # and it will be recalculated
 
@@ -31,11 +31,20 @@ data_raw <- read.csv('Employee Churn.csv')
 ####################################################################
 # 1. Ensure that all dates are in the format: month/day/year
 library(tidyverse)
-as_date <- function(x) format(x, format = "%m/%d/%y")
+as_date <- function(x) as.Date(x, format = "%m/%d/%Y")
 data <- data_raw %>% mutate(recorddate_key = as_date(recorddate_key),
            birthdate_key = as_date(birthdate_key),
            orighiredate_key = as_date(orighiredate_key),
            terminationdate_key = as_date(terminationdate_key))
 # 1.1 Removing the timestamp from recorddate_key
 data$recorddate_key <- format(as.POSIXct(data_raw$recorddate_key, format='%m/%d/%Y %H:%M'), format='%m/%d/%Y')
+
+# 2. Termination date must be replaced by hire date + length of service
+data$terminationdate_key <- data$orighiredate_key + data$length_of_service * 365
+
+# 3. Organizing employees based on 3 categorical groups regarding the number
+# of years of service
+# The categories are: A) Short->0~5, Medium->5~15, Long->15+
+length_categ <- function(x)
+data$longevity <-
 
