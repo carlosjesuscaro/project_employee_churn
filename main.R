@@ -79,6 +79,9 @@ emp_categ <- function(x){
 for (i in 1:length(data$job_title)) {
   data$emp_categ[i] <- emp_categ(data$job_title[i])
 }
+# barplot just to get an idea of the proportion
+barplot(table(data$emp_categ), xlab = "Categories", ylab = "Number of employees")
+title('Job Categories')
 
 
 
