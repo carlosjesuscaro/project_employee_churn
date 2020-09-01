@@ -49,11 +49,28 @@ data$terminationdate_key <- data$orighiredate_key + data$length_of_service * 365
 length_categ <- function(x){
   len_cat <- 'N'
   if (x < 5) {len_cat <- 'A'}
-  else if (x >= 5 && x <= 15) {len_cat <- 'B'}
-  else if (x > 15) {len_cat <- 'C'}
-  return(len_cat)
+    else if (x >= 5 && x <= 15) {len_cat <- 'B'}
+    else if (x > 15) {len_cat <- 'C'}
+    return(len_cat)
 }
 for (i in 1:length(data$length_of_service)) {
   data$length_categ[i] <- length_categ(data$length_of_service[i])
 }
+# barplot just to get an idea of the proportion
+barplot(table(data$length_categ), xlab = "Categories", ylab = "Number of employees",
+        legend.text = 'A: Under 5y, B: between 5 and 15y, C: More than 15y')
+title('Length of Service Categories')
+
+# 4. Organizing employees based on 3 categorical groups: executives, management
+# and non management
+emp_categ <- function(x){
+  emp_cat <- 'N'
+  if (x == 'CEO' | x == regex('Director') | x == regex('VP')) {emp_cat <- 'Exec'}
+  return(emp_cat)
+}
+for (i in 1:length(data$job_title)) {
+  data$emp_categ[i] <- length_categ(data$job_title[i])
+}
+
+
 
