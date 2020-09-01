@@ -64,12 +64,20 @@ title('Length of Service Categories')
 # 4. Organizing employees based on 3 categorical groups: executives, management
 # and non management
 emp_categ <- function(x){
-  emp_cat <- 'N'
-  if (x == 'CEO' | x == regex('Director') | x == regex('VP')) {emp_cat <- 'Exec'}
-  return(emp_cat)
+  if (x == 'CEO' || grepl('VP', x, ignore.case = TRUE) ||
+    grepl('Chief', x, ignore.case = TRUE) ||
+    grepl('legal', x, ignore.case = TRUE))
+    {emp_cat <- 'Exec'
+      return(emp_cat)}
+    else if (grepl('manag', x, ignore.case = TRUE) ||
+      grepl('Director', x, ignore.case = TRUE))
+      {emp_cat <- 'Management'
+        return(emp_cat)}
+    else {emp_cat <- 'Worker'
+          return(emp_cat)}
 }
 for (i in 1:length(data$job_title)) {
-  data$emp_categ[i] <- length_categ(data$job_title[i])
+  data$emp_categ[i] <- emp_categ(data$job_title[i])
 }
 
 
