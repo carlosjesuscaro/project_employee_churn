@@ -17,7 +17,7 @@ data_raw <- read.csv('Employee Churn.csv')
 # of years of service
 # 5. Organizing employees based on 3 categorical groups: executives, management
 # and non management
-# 6. Transform the STATUS column from Active/Terminated to 1/0
+# 6. Create a ew EStatus column to 1/0 (Active or Terminated)
 
 # Data assumptions/corrections
 # 1. The Employee ID column has multiple repeated with the same information except
@@ -100,6 +100,14 @@ for (i in 1:length(data$job_title)) {
 # barplot just to get an idea of the proportion
 barplot(table(data$emp_categ), xlab = "Categories", ylab = "Number of employees")
 title('Job Categories')
+
+# 6. Create a ew EStatus column to 1/0 (Active or Terminated)
+for (iii in 1:length(data$STATUS)){
+    if (data$STATUS[iii] == 'ACTIVE')
+      {data$EStatus[iii] <- 1}
+    else {data$EStatus[iii] <- 0}
+  }
+
 
 # Writting the clean dataframe as CSV
 write.csv(data, 'employee_churn_clean.csv')
