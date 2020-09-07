@@ -17,13 +17,16 @@ data_raw <- read.csv('Employee Churn.csv')
 # of years of service
 # 5. Organizing employees based on 3 categorical groups: executives, management
 # and non management
+# 6. Transform the STATUS column from Active/Terminated to 1/0
 
 # Data assumptions/corrections
 # 1. The Employee ID column has multiple repeated with the same information except
-# for columns 'age' and 'length_of_service'. For purposes of this exercise, it is assumed
-# that the real values are from the first time the employee is listed
+# for columns 'age' and 'length_of_service'.It is understood that the information was capture
+# more than once for the same user. Therefore, the only value to be considered is
+# the one with maximum number of 'years as length_of_service'
 # 2. 'Termination Date' is set as '1/1/1900' to all employees. This is incorrect
-# and it will be recalculated
+# and it will be recalculated. Additionally, the column that detrmined whether the
+# employee is active or not is the 'Status' column
 
 ####################################################################
 # DATA PREPARATION EXECUTION
