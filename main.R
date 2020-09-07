@@ -104,11 +104,45 @@ title('Job Categories')
 # 6. Create a ew EStatus column to 1/0 (Active or Terminated)
 for (iii in 1:length(data$STATUS)){
     if (data$STATUS[iii] == 'ACTIVE')
-      {data$EStatus[iii] <- 1}
-    else {data$EStatus[iii] <- 0}
+      {data$EStatus[iii] <- 0}
+    else {data$EStatus[iii] <- 1}
   }
 
 
 # Writting the clean dataframe as CSV
 write.csv(data, 'employee_churn_clean.csv')
 
+####################################################################
+# ANALYSIS PLAN
+####################################################################
+library(survival)
+library(ggplot2)
+library(survminer)
+fit.KM <- survfit(Surv(data$STATUS_YEAR, data$EStatus) ~ 1, data = data)
+summary(fit.KM)
+plot(fit.KM, mark.time = TRUE,
+     main = "Kaplan-Meier estimator",
+     ylab = "Survival probability",
+     xlab = "time (seconds)")
+ggsurvplot(fit.KM, conf.int = FALSE, risk.table = 'nrisk_cumevents', legend = 'none')
+
+fit.KM <- survfit(Surv(data$STATUS_YEAR, data$EStatus) ~ 1, data = data)
+fit.KM
+
+# Comparing based on groups:
+# age
+fit.logrank <- survdiff(Surv(data$STATUS_YEAR, data$EStatus) ~ data$age, data = data)
+fit.logrank
+# Employment category
+fit.logrank <- survdiff(Surv(data$STATUS_YEAR, data$EStatus) ~ data$emp_categ, data = data)
+fit.logrank
+# Lenght of service
+fit.logrank <- survdiff(Surv(data$STATUS_YEAR, data$EStatus) ~ data$length_categ, data = data)
+fit.logrank
+# Genre
+fit.logrank <- survdiff(Surv(data$STATUS_YEAR, data$EStatus) ~ data$gender_short, data = data)
+fit.logrank
+# Comparing all of them
+fit.logrank <- survdiff(Surv(data$STATUS_YEAR, data$EStatus) ~ data$age + data$length_categ
+  + data$emp_categ + data$length_categ + data$gender_short, data = data)
+fit.logrank
