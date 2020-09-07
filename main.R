@@ -94,3 +94,6 @@ for (i in 1:length(data$job_title)) {
 # barplot just to get an idea of the proportion
 barplot(table(data$emp_categ), xlab = "Categories", ylab = "Number of employees")
 title('Job Categories')
+
+# Writting the clean dataframe as CSV
+write.csv(data, 'employee_churn_')
