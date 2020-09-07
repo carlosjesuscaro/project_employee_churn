@@ -29,16 +29,19 @@ data_raw <- read.csv('Employee Churn.csv')
 # DATA PREPARATION EXECUTION
 ####################################################################
 
-#1. Reducing the number of rows as many employees are listed multiple time
+#1. Reducing the number of rows as many employees are listed multiple times
 temp <- 0
+data <- data_raw[0,]
 for (i in 1:length(data_raw$EmployeeID)) {
-  if (temp != data_raw$EmployeeID[i]) {
-    if (i == 1) {data <- data_raw[1,]}
-    else {
-    temp <- data_raw$EmployeeID[i]
-    data <- rbind(data, data_raw[i,])
+  if (is.element(data_raw$EmployeeID[i],data$EmployeeID) == FALSE) {
+    temp_index = which(data_raw$EmployeeID == data_raw$EmployeeID[i])
+    temp_max = max(data_raw$length_of_service[temp_index])
+    for (ii in length(temp_index)){
+      if (data_raw$length_of_service[temp_index[ii]] == temp_max){
+        data <- rbind(data, data_raw[temp_index[ii],])
+        }
+      }
     }
-  }
 }
 
 # 2. Ensure that all dates are in the format: month/day/year
@@ -96,4 +99,5 @@ barplot(table(data$emp_categ), xlab = "Categories", ylab = "Number of employees"
 title('Job Categories')
 
 # Writting the clean dataframe as CSV
-write.csv(data, 'employee_churn_')
+write.csv(data, 'employee_churn_clean.csv')
+
