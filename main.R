@@ -118,31 +118,51 @@ write.csv(data, 'employee_churn_clean.csv')
 library(survival)
 library(ggplot2)
 library(survminer)
-fit.KM <- survfit(Surv(data$STATUS_YEAR, data$EStatus) ~ 1, data = data)
+
+# In order to show the evolution from time 0 in the kaplan Meier curve
+# time 0 --> 2006
+for (i in 1:length(data$STATUS_YEAR)){
+  data$ESY[i] <- data$STATUS_YEAR[i] - 2006
+}
+
+# Estimating the Kaplan Meier curve
+fit.KM <- survfit(Surv(ESY, EStatus) ~ 1, data = data)
 summary(fit.KM)
+
+# Plotting
 plot(fit.KM, mark.time = TRUE,
      main = "Kaplan-Meier estimator",
      ylab = "Survival probability",
-     xlab = "time (seconds)")
-ggsurvplot(fit.KM, conf.int = FALSE, risk.table = 'nrisk_cumevents', legend = 'none')
+     xlab = "Years (since 2006)")
 
-fit.KM <- survfit(Surv(data$STATUS_YEAR, data$EStatus) ~ 1, data = data)
-fit.KM
+ggsurvplot(fit.KM, data)
+ggsurvplot(fit.KM, data, palette = 'red', linetype = 1,
+          cumevents = TRUE, cumcensor = TRUE, conf.int = TRUE,
+           risk.table = TRUE, surv.median.line = 'hv')
 
-# Comparing based on groups:
-# age
-fit.logrank <- survdiff(Surv(data$STATUS_YEAR, data$EStatus) ~ data$age, data = data)
+# Analyzing based on groups
+# Age
+fit_age <- survfit(Surv(ESY, EStatus) ~ strata(age), data = data)
+summary(fit_age)
+fit.logrank <- survdiff(Surv(ESY, EStatus) ~ age, data = data)
 fit.logrank
+
 # Employment category
-fit.logrank <- survdiff(Surv(data$STATUS_YEAR, data$EStatus) ~ data$emp_categ, data = data)
+fit.logrank <- survdiff(Surv(ESY, EStatus) ~ emp_categ, data = data)
 fit.logrank
+# There is a significant difference among the categories of Employment category:
+# Exec, Management and Worker
+
 # Lenght of service
-fit.logrank <- survdiff(Surv(data$STATUS_YEAR, data$EStatus) ~ data$length_categ, data = data)
+fit.logrank <- survdiff(Surv(ESY, EStatus) ~ length_categ, data = data)
 fit.logrank
+# There is a significant difference among the categories of Length of Service:
+# A: Less than 5 years
+# B: Between 5 and 15 years
+# C: More than 15 years
+
 # Genre
-fit.logrank <- survdiff(Surv(data$STATUS_YEAR, data$EStatus) ~ data$gender_short, data = data)
+fit.logrank <- survdiff(Surv(ESY, EStatus) ~ gender_short, data = data)
 fit.logrank
-# Comparing all of them
-fit.logrank <- survdiff(Surv(data$STATUS_YEAR, data$EStatus) ~ data$age + data$length_categ
-  + data$emp_categ + data$length_categ + data$gender_short, data = data)
-fit.logrank
+# There is a significant difference between Male (M) and Female (F)
+
