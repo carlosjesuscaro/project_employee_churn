@@ -17,7 +17,8 @@ data_raw <- read.csv('Employee Churn.csv')
 # of years of service
 # 5. Organizing employees based on 3 categorical groups: executives, management
 # and non management
-# 6. Create a ew EStatus column to 1/0 (Active or Terminated)
+# 6. Organizing employees age based on their live's decade ('20s','30s',etc)
+# 7. Create a ew EStatus column to 0/1 (Active or Terminated)
 
 # Data assumptions/corrections
 # 1. The Employee ID column has multiple repeated with the same information except
@@ -101,13 +102,23 @@ for (i in 1:length(data$job_title)) {
 barplot(table(data$emp_categ), xlab = "Categories", ylab = "Number of employees")
 title('Job Categories')
 
-# 6. Create a ew EStatus column to 1/0 (Active or Terminated)
-for (iii in 1:length(data$STATUS)){
-    if (data$STATUS[iii] == 'ACTIVE')
-      {data$EStatus[iii] <- 0}
+# 6. Organizing employees age based on their live's decade ('20s','30s',etc
+for (iii in 1:length(data$age)){
+  temp_num <- floor(data$age[iii]/10)
+  if (temp_num == 1) {data$age_dec[iii] <- '10s'}
+  else if (temp_num == 2) {data$age_dec[iii] <- '20s'}
+  else if (temp_num == 3) {data$age_dec[iii] <- '30s'}
+  else if (temp_num == 4) {data$age_dec[iii] <- '40s'}
+  else if (temp_num == 5) {data$age_dec[iii] <- '50s'}
+  else if (temp_num == 6) {data$age_dec[iii] <- '60s'}
+}
+
+# 7. Create a ew EStatus column to 1/0 (Active or Terminated)
+for (iiii in 1:length(data$STATUS)){
+    if (data$STATUS[iiii] == 'ACTIVE')
+      {data$EStatus[iiii] <- 0}
     else {data$EStatus[iii] <- 1}
   }
-
 
 # Writting the clean dataframe as CSV
 write.csv(data, 'employee_churn_clean.csv')
@@ -118,6 +129,7 @@ write.csv(data, 'employee_churn_clean.csv')
 library(survival)
 library(ggplot2)
 library(survminer)
+library(stringr)
 
 # In order to show the evolution from time 0 in the kaplan Meier curve
 # time 0 --> 2006
@@ -142,27 +154,47 @@ ggsurvplot(fit.KM, data, palette = 'red', linetype = 1,
 
 # Analyzing based on groups
 # Age
-fit_age <- survfit(Surv(ESY, EStatus) ~ strata(age), data = data)
-summary(fit_age)
-fit.logrank <- survdiff(Surv(ESY, EStatus) ~ age, data = data)
+fit.KM <- survfit(Surv(ESY, EStatus) ~ age_dec, data = data)
+summary(fit.KM)
+fit.logrank <- survdiff(Surv(ESY, EStatus) ~ age_dec, data = data)
 fit.logrank
+# There is significant difference among the ages gropues by decades
+fit <- coxph(Surv(ESY, EStatus) ~ toString(age_dec), data = data)
+fit
+
 
 # Employment category
+fit.KM <- survfit(Surv(ESY, EStatus) ~ emp_categ, data = data)
+fit.KM
+plot(fit.KM, col=1:3)
 fit.logrank <- survdiff(Surv(ESY, EStatus) ~ emp_categ, data = data)
 fit.logrank
 # There is a significant difference among the categories of Employment category:
 # Exec, Management and Worker
+fit <- coxph(Surv(ESY, EStatus) ~ emp_categ, data = data)
+fit
 
 # Lenght of service
+fit.KM <- survfit(Surv(ESY, EStatus) ~ length_categ, data = data)
+fit.KM
+plot(fit.KM, col=1:3)
 fit.logrank <- survdiff(Surv(ESY, EStatus) ~ length_categ, data = data)
 fit.logrank
 # There is a significant difference among the categories of Length of Service:
 # A: Less than 5 years
 # B: Between 5 and 15 years
 # C: More than 15 years
+fit <- coxph(Surv(ESY, EStatus) ~ length_categ, data = data)
+fit
 
 # Genre
+fit.KM <- survfit(Surv(ESY, EStatus) ~ gender_short, data = data)
+fit.KM
+plot(fit.KM, col=1:2)
 fit.logrank <- survdiff(Surv(ESY, EStatus) ~ gender_short, data = data)
 fit.logrank
 # There is a significant difference between Male (M) and Female (F)
+fit <- coxph(Surv(ESY, EStatus) ~ gender_short, data = data)
+fit
+
 
