@@ -117,7 +117,7 @@ for (iii in 1:length(data$age)){
 for (iiii in 1:length(data$STATUS)){
     if (data$STATUS[iiii] == 'ACTIVE')
       {data$EStatus[iiii] <- 0}
-    else {data$EStatus[iii] <- 1}
+    else {data$EStatus[iiii] <- 1}
   }
 
 # Writting the clean dataframe as CSV
