@@ -17,7 +17,8 @@ data_raw <- read.csv('Employee Churn.csv')
 # of years of service
 # 5. Organizing employees based on 3 categorical groups: executives, management
 # and non management
-# 6. Create a ew EStatus column to 0/1 (Active or Terminated)
+# 6. Organizing employees age based on their live's decade ('20s','30s',etc)
+# 7. Create a ew EStatus column to 0/1 (Active or Terminated)
 
 # Data assumptions/corrections
 # 1. The Employee ID column has multiple repeated with the same information except
@@ -101,7 +102,18 @@ for (i in 1:length(data$job_title)) {
 barplot(table(data$emp_categ), xlab = "Categories", ylab = "Number of employees")
 title('Job Categories')
 
-# 6. Create a ew EStatus column to 1/0 (Active or Terminated)
+# 6. Organizing employees age based on their live's decade ('20s','30s',etc
+for (iii in 1:length(data$age)){
+  temp_num <- floor(data$age[iii]/10)
+  if (temp_num == 1) {data$age_dec[iii] <- '10s'}
+  else if (temp_num == 2) {data$age_dec[iii] <- '20s'}
+  else if (temp_num == 3) {data$age_dec[iii] <- '30s'}
+  else if (temp_num == 4) {data$age_dec[iii] <- '40s'}
+  else if (temp_num == 5) {data$age_dec[iii] <- '50s'}
+  else if (temp_num == 6) {data$age_dec[iii] <- '60s'}
+}
+
+# 7. Create a ew EStatus column to 1/0 (Active or Terminated)
 for (iiii in 1:length(data$STATUS)){
     if (data$STATUS[iiii] == 'ACTIVE')
       {data$EStatus[iiii] <- 0}
@@ -136,62 +148,106 @@ plot(fit.KM, mark.time = TRUE,
      xlab = "Years (since 2006)")
 
 ggsurvplot(fit.KM, data)
-ggsurvplot(fit.KM, data, palette = 'red', linetype = 1,
-          cumevents = TRUE, cumcensor = FALSE, conf.int = TRUE,
-           risk.table = TRUE, surv.median.line = 'hv')
+# ggsurvplot(fit.KM, data, palette = 'red', linetype = 1,
+#          cumevents = TRUE, cumcensor = FALSE, conf.int = TRUE,
+#           risk.table = TRUE, surv.median.line = 'hv')
 
 # Analyzing based on groups
-# Age
-fit.KM <- survfit(Surv(ESY, EStatus) ~ age_dec, data = data)
+# 1. Age
+# 1.1 Analyziong age by year
+fit.KM <- coxph(Surv(ESY, EStatus) ~ age, data = data)
 summary(fit.KM)
-fit.logrank <- survdiff(Surv(ESY, EStatus) ~ age_dec, data = data)
-fit.logrank
-# There is significant difference among the ages gropues by decades
-fit <- coxph(Surv(ESY, EStatus) ~ age_dec, data = data)
-fit
+plot(survfit(fit.KM), xlab = 'Years after 2006', ylab = 'Survival Rate', conf.int = TRUE)
+# Interpretation
+# The risk of being terminated increases by 5% every extra year in age
 
-fit <- coxph(Surv(ESY, EStatus) ~ age, data = data)
-fit
-
+# 1.2 Analyzing age by decade
 data <- mutate(data, age_dec_alt = age / 10)
-fit <- coxph(Surv(ESY, EStatus) ~ age_dec_alt, data = data)
-fit
+fit.KM <- coxph(Surv(ESY, EStatus) ~ age_dec_alt, data = data)
+summary(fit.KM)
+plot(survfit(fit.KM), xlab = 'Years after 2006', ylab = 'Survival Rate', conf.int = TRUE)
+# Interpretation
+# The risk of being terminated increases by 63% every extra 10 years in age
+
+# 1.3 Analyzing age by categorical group
+fit.KM <- coxph(Surv(ESY, EStatus) ~ age_dec, data = data)
+summary(fit.KM)
+plot(survfit(fit.KM), xlab = 'Years after 2006', ylab = 'Survival Rate', conf.int = TRUE)
+# Interpretation
+#
 
 # Employment category
-fit.KM <- survfit(Surv(ESY, EStatus) ~ emp_categ, data = data)
-fit.KM
-plot(fit.KM, col=1:3)
-fit.logrank <- survdiff(Surv(ESY, EStatus) ~ emp_categ, data = data)
-fit.logrank
 # There is a significant difference among the categories of Employment category:
 # Exec, Management and Worker
-fit <- coxph(Surv(ESY, EStatus) ~ emp_categ, data = data)
-fit
+fit.KM <- coxph(Surv(ESY, EStatus) ~ emp_categ, data = data)
+summary(fit.KM)
+plot(survfit(fit.KM), xlab = 'Years after 2006', ylab = 'Survival Rate', conf.int = TRUE, col=1:3)
+legend("bottomleft", legend = c('Exec','Worker','Management'), lty = 1, col = 1:3, text.col = 1:3,
+      title = 'Employment Category')
 
 # Lenght of service
-fit.KM <- survfit(Surv(ESY, EStatus) ~ length_categ, data = data)
-fit.KM
-plot(fit.KM, col=1:3)
-fit.logrank <- survdiff(Surv(ESY, EStatus) ~ length_categ, data = data)
-fit.logrank
+fit.KM <- coxph(Surv(ESY, EStatus) ~ length_categ, data = data)
+summary(fit.KM)
+plot(survfit(fit.KM), xlab = 'Years after 2006', ylab = 'Survival Rate', conf.int = TRUE, col=1:3)
+legend("bottomleft", legend = c('Exec','Worker','Management'), lty = 1, col = 1:3, text.col = 1:3,
+       title = 'Length of Service Category')
+# Interpretation
+# Employees between 5 and 15 years are 7% less likely to stop working while employees with more than
+# 15 years are 2.3 more likely to stop working
 # There is a significant difference among the categories of Length of Service:
 # A: Less than 5 years
 # B: Between 5 and 15 years
 # C: More than 15 years
-fit <- coxph(Surv(ESY, EStatus) ~ length_categ, data = data)
-fit
 
 # Genre
-fit.KM <- survfit(Surv(ESY, EStatus) ~ gender_short, data = data)
-fit.KM
-plot(fit.KM, col=1:2)
-fit.logrank <- survdiff(Surv(ESY, EStatus) ~ gender_short, data = data)
-fit.logrank
-# There is a significant difference between Male (M) and Female (F)
-fit <- coxph(Surv(ESY, EStatus) ~ gender_short, data = data)
-fit
+fit.KM <- coxph(Surv(ESY, EStatus) ~ gender_short, data = data)
+summary(fit.KM)
+# Interpretation
+# Male employees are 33% less likely to stop working than
+
+# Termination type
+fit.KM <- coxph(Surv(ESY, EStatus) ~ termtype_desc, data = data)
+summary(fit.KM)
+# Interpretation
+# It is almost 3 times more likelt that a termination is due to a voluntary decision by the
+# employee
 
 # Cox Model with all the covariants
-fit <- coxph(Surv(ESY, EStatus) ~ age + length_categ + emp_categ + gender_short + termtype_desc, data = data)
-fit
+fit.KM <- coxph(Surv(ESY, EStatus) ~ age + length_categ + emp_categ +
+          gender_short + termtype_desc + age:termtype_desc, data = data)
+summary(fit.KM)
+
+# Model selecttion
+# 1. Partial Likelihood Ratio Test
+fit.KM1 <- coxph(Surv(ESY, EStatus) ~ age + length_categ  +
+  gender_short + termtype_desc, data = data)
+summary(fit.KM1)
+
+fit.KM2 <- coxph(Surv(ESY, EStatus) ~ age + length_categ  +
+  gender_short, data = data)
+summary(fit.KM2)
+
+fit.KM3 <- coxph(Surv(ESY, EStatus) ~ age + length_categ, data = data)
+summary(fit.KM3)
+
+fit.KM4 <- coxph(Surv(ESY, EStatus) ~ age, data = data)
+summary(fit.KM4)
+
+fit.KM5 <- coxph(Surv(ESY, EStatus) ~ 1, data = data)
+summary(fit.KM5)
+
+anova(fit.KM5, fit.KM1) #fit.KM1
+anova(fit.KM4, fit.KM1) #fit.KM1
+anova(fit.KM2, fit.KM1) #fit.KM1
+anova(fit.KM3, fit.KM1) #fit.KM1
+# fit.KM1 is the best model
+
+# 2. AIC method
+fits <- list(fit.KM1, fit.KM2, fit.KM3, fit.KM4, fit.KM5)
+sapply(fits, AIC)
+# fit.KM1 is the best model
+
+# 3.
+
+
 
