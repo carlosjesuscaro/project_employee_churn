@@ -159,7 +159,7 @@ summary(fit.KM)
 fit.logrank <- survdiff(Surv(ESY, EStatus) ~ age_dec, data = data)
 fit.logrank
 # There is significant difference among the ages gropues by decades
-fit <- coxph(Surv(ESY, EStatus) ~ toString(age_dec), data = data)
+fit <- coxph(Surv(ESY, EStatus) ~ age_dec, data = data)
 fit
 
 
