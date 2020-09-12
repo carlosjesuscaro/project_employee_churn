@@ -17,8 +17,7 @@ data_raw <- read.csv('Employee Churn.csv')
 # of years of service
 # 5. Organizing employees based on 3 categorical groups: executives, management
 # and non management
-# 6. Organizing employees age based on their live's decade ('20s','30s',etc)
-# 7. Create a ew EStatus column to 0/1 (Active or Terminated)
+# 6. Create a ew EStatus column to 0/1 (Active or Terminated)
 
 # Data assumptions/corrections
 # 1. The Employee ID column has multiple repeated with the same information except
@@ -102,18 +101,7 @@ for (i in 1:length(data$job_title)) {
 barplot(table(data$emp_categ), xlab = "Categories", ylab = "Number of employees")
 title('Job Categories')
 
-# 6. Organizing employees age based on their live's decade ('20s','30s',etc
-for (iii in 1:length(data$age)){
-  temp_num <- floor(data$age[iii]/10)
-  if (temp_num == 1) {data$age_dec[iii] <- '10s'}
-  else if (temp_num == 2) {data$age_dec[iii] <- '20s'}
-  else if (temp_num == 3) {data$age_dec[iii] <- '30s'}
-  else if (temp_num == 4) {data$age_dec[iii] <- '40s'}
-  else if (temp_num == 5) {data$age_dec[iii] <- '50s'}
-  else if (temp_num == 6) {data$age_dec[iii] <- '60s'}
-}
-
-# 7. Create a ew EStatus column to 1/0 (Active or Terminated)
+# 6. Create a ew EStatus column to 1/0 (Active or Terminated)
 for (iiii in 1:length(data$STATUS)){
     if (data$STATUS[iiii] == 'ACTIVE')
       {data$EStatus[iiii] <- 0}
@@ -149,7 +137,7 @@ plot(fit.KM, mark.time = TRUE,
 
 ggsurvplot(fit.KM, data)
 ggsurvplot(fit.KM, data, palette = 'red', linetype = 1,
-          cumevents = TRUE, cumcensor = TRUE, conf.int = TRUE,
+          cumevents = TRUE, cumcensor = FALSE, conf.int = TRUE,
            risk.table = TRUE, surv.median.line = 'hv')
 
 # Analyzing based on groups
@@ -162,6 +150,12 @@ fit.logrank
 fit <- coxph(Surv(ESY, EStatus) ~ age_dec, data = data)
 fit
 
+fit <- coxph(Surv(ESY, EStatus) ~ age, data = data)
+fit
+
+data <- mutate(data, age_dec_alt = age / 10)
+fit <- coxph(Surv(ESY, EStatus) ~ age_dec_alt, data = data)
+fit
 
 # Employment category
 fit.KM <- survfit(Surv(ESY, EStatus) ~ emp_categ, data = data)
@@ -197,4 +191,7 @@ fit.logrank
 fit <- coxph(Surv(ESY, EStatus) ~ gender_short, data = data)
 fit
 
+# Cox Model with all the covariants
+fit <- coxph(Surv(ESY, EStatus) ~ age + length_categ + emp_categ + gender_short + termtype_desc, data = data)
+fit
 
