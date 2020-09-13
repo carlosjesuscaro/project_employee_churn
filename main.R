@@ -19,7 +19,9 @@ data_raw <- read.csv('Employee Churn.csv')
 # and non management
 # 6. Organizing employees age based on their live's decade ('20s','30s',etc)
 # 7. Create a new EStatus column to 0/1 (Active or Terminated)
-# 8. Removing the columns that will not be used in the analysis
+# 8. Creating a new baseline for time: 2006 ~ Year 0
+# 9. Removing the columns that will not be used in the analysis
+# 10. Writting the clean dataframe as CSV
 
 
 # Data assumptions/corrections
@@ -52,6 +54,7 @@ for (i in 1:length(data_raw$EmployeeID)) {
 
 # 2. Ensure that all dates are in the format: month/day/year
 library(tidyverse)
+library(dplyr)
 as_date <- function(x) as.Date(x, format = "%m/%d/%Y")
 data <- data %>% mutate(recorddate_key = as_date(recorddate_key),
            birthdate_key = as_date(birthdate_key),
@@ -122,12 +125,17 @@ for (i in 1:length(data$STATUS)){
     else {data$EStatus[i] <- 1}
   }
 
-# 8. Removing the columns that will not be used in the analysis
-data_new <- subset(data, select = ('EmployeeID', 'age', 'length_of_service', 'gender_short',
-               'termtype_desc', 'length_categ', 'emp_categ', 'age_dec', 'EStatus', 'ESY'))
+# 8. Creating a new baseline for time: 2006 ~ Year 0
+for (i in 1:length(data$STATUS_YEAR)){
+  data$ESY[i] <- data$STATUS_YEAR[i] - 2006
+}
 
-# Writting the clean dataframe as CSV
-write.csv(data, 'employee_churn_clean.csv')
+# 9. Removing the columns that will not be used in the analysis
+data_new <- data%>%select('EmployeeID','age','length_of_service', 'gender_short',
+               'termtype_desc', 'length_categ', 'emp_categ', 'age_dec', 'EStatus', 'ESY')
+
+# 10. Writting the clean dataframe as CSV
+write.csv(data_new, 'employee_churn_clean.csv')
 
 ####################################################################
 # ANALYSIS PLAN
@@ -150,12 +158,6 @@ library(stringr)
 # 4. Checking model assumptions
 # 4.1 Proportiionality of hazards
 # 4.2 Schoenfeld residuals
-
-# In order to show the evolution from time 0 in the kaplan Meier curve
-# time 0 --> 2006
-for (i in 1:length(data$STATUS_YEAR)){
-  data$ESY[i] <- data$STATUS_YEAR[i] - 2006
-}
 
 # Estimating the Kaplan Meier curve
 fit.KM <- survfit(Surv(ESY, EStatus) ~ 1, data = data)
