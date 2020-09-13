@@ -19,6 +19,8 @@ data_raw <- read.csv('Employee Churn.csv')
 # and non management
 # 6. Organizing employees age based on their live's decade ('20s','30s',etc)
 # 7. Create a new EStatus column to 0/1 (Active or Terminated)
+# 8. Removing the columns that will not be used in the analysis
+
 
 # Data assumptions/corrections
 # 1. The Employee ID column has multiple repeated with the same information except
@@ -59,7 +61,7 @@ data <- data %>% mutate(recorddate_key = as_date(recorddate_key),
 data$recorddate_key <- format(as.POSIXct(data$recorddate_key, format='%m/%d/%Y %H:%M'), format='%m/%d/%Y')
 
 # 3. Termination date must be replaced by hire date + length of service
-data$terminationdate_key <- data$orighiredate_key + data$length_of_service * 365
+data$terminationdate_key <- data$orighiredate_key + data$length_of_service * 365.25
 
 # 4. Organizing employees based on 3 categorical groups regarding the number
 # of years of service
@@ -113,12 +115,16 @@ for (i in 1:length(data$age)){
   else if (temp_num == 6) {data$age_dec[i] <- '60s'}
 }
 
-# 7. Create a ew EStatus column to 1/0 (Active or Terminated)
+# 7. Create a new EStatus column to 1/0 (Active or Terminated)
 for (i in 1:length(data$STATUS)){
     if (data$STATUS[i] == 'ACTIVE')
       {data$EStatus[i] <- 0}
     else {data$EStatus[i] <- 1}
   }
+
+# 8. Removing the columns that will not be used in the analysis
+data_new <- subset(data, select = ('EmployeeID', 'age', 'length_of_service', 'gender_short',
+               'termtype_desc', 'length_categ', 'emp_categ', 'age_dec', 'EStatus', 'ESY'))
 
 # Writting the clean dataframe as CSV
 write.csv(data, 'employee_churn_clean.csv')
@@ -126,10 +132,24 @@ write.csv(data, 'employee_churn_clean.csv')
 ####################################################################
 # ANALYSIS PLAN
 ####################################################################
+
 library(survival)
 library(ggplot2)
 library(survminer)
 library(stringr)
+
+# 1. Comparing nested models
+# 1.1 Likelihood Ratio Test (anova)
+# 1.2 AIC
+# 1.3 Concordance index
+# 1.4 ROC
+# 2. Comparing non-nested models
+# 3. Assessing goodness of fit
+# 3.1 Martingale
+# 3.2 Case deletion
+# 4. Checking model assumptions
+# 4.1 Proportiionality of hazards
+# 4.2 Schoenfeld residuals
 
 # In order to show the evolution from time 0 in the kaplan Meier curve
 # time 0 --> 2006
@@ -153,6 +173,10 @@ ggsurvplot(fit.KM, data)
 #           risk.table = TRUE, surv.median.line = 'hv')
 
 # Analyzing based on groups
+
+
+##############################################################################################
+
 # 1. Age
 # 1.1 Analyziong age by year
 fit.KM <- coxph(Surv(ESY, EStatus) ~ age, data = data)
