@@ -19,7 +19,6 @@ data_raw <- read.csv('Employee Churn.csv')
 # and non management
 # 6. Organizing employees age based on their live's decade ('20s','30s',etc)
 # 7. Create a new EStatus column to 0/1 (Active or Terminated)
-# 8. Replace 'Not Applicable' in 'Termtype_desc' by 'Other'
 
 # Data assumptions/corrections
 # 1. The Employee ID column has multiple repeated with the same information except
@@ -104,28 +103,22 @@ barplot(table(data$emp_categ), xlab = "Categories", ylab = "Number of employees"
 title('Job Categories')
 
 # 6. Organizing employees age based on their live's decade ('20s','30s',etc
-for (iii in 1:length(data$age)){
-  temp_num <- floor(data$age[iii]/10)
-  if (temp_num == 1) {data$age_dec[iii] <- '10s'}
-  else if (temp_num == 2) {data$age_dec[iii] <- '20s'}
-  else if (temp_num == 3) {data$age_dec[iii] <- '30s'}
-  else if (temp_num == 4) {data$age_dec[iii] <- '40s'}
-  else if (temp_num == 5) {data$age_dec[iii] <- '50s'}
-  else if (temp_num == 6) {data$age_dec[iii] <- '60s'}
+for (i in 1:length(data$age)){
+  temp_num <- floor(data$age[i]/10)
+  if (temp_num == 1) {data$age_dec[i] <- '10s'}
+  else if (temp_num == 2) {data$age_dec[i] <- '20s'}
+  else if (temp_num == 3) {data$age_dec[i] <- '30s'}
+  else if (temp_num == 4) {data$age_dec[i] <- '40s'}
+  else if (temp_num == 5) {data$age_dec[i] <- '50s'}
+  else if (temp_num == 6) {data$age_dec[i] <- '60s'}
 }
 
 # 7. Create a ew EStatus column to 1/0 (Active or Terminated)
-for (iiii in 1:length(data$STATUS)){
-    if (data$STATUS[iiii] == 'ACTIVE')
-      {data$EStatus[iiii] <- 0}
-    else {data$EStatus[iiii] <- 1}
+for (i in 1:length(data$STATUS)){
+    if (data$STATUS[i] == 'ACTIVE')
+      {data$EStatus[i] <- 0}
+    else {data$EStatus[i] <- 1}
   }
-
-# 8. Replace 'Not Applicable' in 'Termtype_desc' by 'Other'
-for (iiiii in 1:length(data$termtype_desc)){
-  if (data$termtype_desc[iiiii] == 'Not Applicable')
-    {data$termtype_desc[iiiii] <- 'Other'}
-}
 
 # Writting the clean dataframe as CSV
 write.csv(data, 'employee_churn_clean.csv')
