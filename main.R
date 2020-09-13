@@ -18,7 +18,8 @@ data_raw <- read.csv('Employee Churn.csv')
 # 5. Organizing employees based on 3 categorical groups: executives, management
 # and non management
 # 6. Organizing employees age based on their live's decade ('20s','30s',etc)
-# 7. Create a ew EStatus column to 0/1 (Active or Terminated)
+# 7. Create a new EStatus column to 0/1 (Active or Terminated)
+# 8. Replace 'Not Applicable' in 'Termtype_desc' by 'Other'
 
 # Data assumptions/corrections
 # 1. The Employee ID column has multiple repeated with the same information except
@@ -119,6 +120,12 @@ for (iiii in 1:length(data$STATUS)){
       {data$EStatus[iiii] <- 0}
     else {data$EStatus[iiii] <- 1}
   }
+
+# 8. Replace 'Not Applicable' in 'Termtype_desc' by 'Other'
+for (iiiii in 1:length(data$termtype_desc)){
+  if (data$termtype_desc[iiiii] == 'Not Applicable')
+    {data$termtype_desc[iiiii] <- 'Other'}
+}
 
 # Writting the clean dataframe as CSV
 write.csv(data, 'employee_churn_clean.csv')
@@ -247,7 +254,23 @@ fits <- list(fit.KM1, fit.KM2, fit.KM3, fit.KM4, fit.KM5)
 sapply(fits, AIC)
 # fit.KM1 is the best model
 
-# 3.
+# 3. Martingale residual
+data$residual <- residuals(fit.KM1, type = "martingale")
+
+#par(mfrow = c(2, 2), mar = c(5, 4, 4, 2))
+with(data, {
+  plot(age, residual)
+  lines(lowess(age, residual), lwd = 2)
+
+  plot(residual ~ gender_short)
+
+  plot(residual ~ termtype_desc)
+
+  plot(residual ~ length_categ)
+})
+
+residual.sch <- cox.zph(fit.KM1)
+plot(residual.sch)
 
 
 
