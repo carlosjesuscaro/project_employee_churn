@@ -160,7 +160,7 @@ library(stringr)
 # 4.2 Schoenfeld residuals
 
 # Estimating the Kaplan Meier curve
-fit.KM <- survfit(Surv(ESY, EStatus) ~ 1, data = data)
+fit.KM <- survfit(Surv(ESY, EStatus) ~ 1, data = data_new)
 summary(fit.KM)
 
 # Plotting
@@ -169,13 +169,26 @@ plot(fit.KM, mark.time = TRUE,
      ylab = "Survival probability",
      xlab = "Years (since 2006)")
 
-ggsurvplot(fit.KM, data)
-# ggsurvplot(fit.KM, data, palette = 'red', linetype = 1,
-#          cumevents = TRUE, cumcensor = FALSE, conf.int = TRUE,
-#           risk.table = TRUE, surv.median.line = 'hv')
 
 # Analyzing based on groups
 
+fit.KM <- coxph(Surv(ESY, EStatus) ~ age + length_categ + emp_categ +
+  gender_short + termtype_desc + age:termtype_desc, data = data)
+summary(fit.KM)
+FF <- step(fit.KM)
+
+fit.KM <- coxph(Surv(ESY, EStatus) ~ age + length_categ + emp_categ +
+  gender_short + termtype_desc, data = data)
+summary(fit.KM)
+FF <- step(fit.KM)
+
+model <- coxph(Surv(ESY, EStatus) ~ age + length_of_service + gender_short +
+  termtype_desc + length_categ + emp_categ + age_dec, data = data_new)
+FULL <- step(model)
+
+model <- coxph(Surv(ESY, EStatus) ~ age + gender_short + length_categ +
+  length_of_service + age_dec, data = data_new)
+FULL <- step(model)
 
 ##############################################################################################
 
