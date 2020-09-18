@@ -170,25 +170,16 @@ plot(fit.KM, mark.time = TRUE,
      xlab = "Years (since 2006)")
 
 
-# Analyzing based on groups
-
-fit.KM <- coxph(Surv(ESY, EStatus) ~ age + length_categ + emp_categ +
-  gender_short + termtype_desc + age:termtype_desc, data = data)
-summary(fit.KM)
-FF <- step(fit.KM)
-
-fit.KM <- coxph(Surv(ESY, EStatus) ~ age + length_categ + emp_categ +
-  gender_short + termtype_desc, data = data)
-summary(fit.KM)
-FF <- step(fit.KM)
-
-model <- coxph(Surv(ESY, EStatus) ~ age + length_of_service + gender_short +
-  termtype_desc + length_categ + emp_categ + age_dec, data = data_new)
-FULL <- step(model)
-
+# Automatic detection of covariants for the model
 model <- coxph(Surv(ESY, EStatus) ~ age + gender_short + length_categ +
-  length_of_service + age_dec, data = data_new)
-FULL <- step(model)
+  length_of_service + age_dec , data = data_new)
+summary(model)
+test_model <- step(model)
+# Based on the outcome,the best model is achieved with all the covariants
+
+# Manual selection of covarinats
+
+
 
 ##############################################################################################
 
