@@ -117,6 +117,9 @@ for (i in 1:length(data$age)){
   else if (temp_num == 5) {data$age_dec[i] <- '50s'}
   else if (temp_num == 6) {data$age_dec[i] <- '60s'}
 }
+# bar plot tp visualize the age distribution
+barplot(table(data$age_dec), xlab = "Age by decades", ylab = "Number of employees")
+title('Age by decades')
 
 # 7. Create a new EStatus column to 1/0 (Active or Terminated)
 for (i in 1:length(data$STATUS)){
@@ -175,7 +178,7 @@ model <- coxph(Surv(ESY, EStatus) ~ age + gender_short + length_categ +
   length_of_service + age_dec , data = data_new)
 summary(model)
 test_model <- step(model)
-# Based on the outcome,the best model is achieved with all the covariants
+# Based on the outcome,the best model is achieved with all the covariates
 
 # Manual selection of covarinats
 
@@ -284,11 +287,8 @@ data$residual <- residuals(fit.KM1, type = "martingale")
 with(data, {
   plot(age, residual)
   lines(lowess(age, residual), lwd = 2)
-
   plot(residual ~ gender_short)
-
   plot(residual ~ termtype_desc)
-
   plot(residual ~ length_categ)
 })
 
