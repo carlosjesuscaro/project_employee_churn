@@ -161,6 +161,7 @@ library(stringr)
 
 # Estimating the Kaplan Meier curve
 fit.KM <- survfit(Surv(ESY, EStatus) ~ 1, data = data_new)
+fit.KM
 summary(fit.KM)
 
 # Plotting
@@ -168,6 +169,33 @@ plot(fit.KM, mark.time = TRUE,
      main = "Kaplan-Meier estimator",
      ylab = "Survival probability",
      xlab = "Years (since 2006)")
+
+# Comparing survival among groups
+# Gender
+surv_gender <- survfit(Surv(ESY, EStatus) ~ gender_short, data = data_new)
+survdiff(Surv(ESY, EStatus) ~ gender_short, data = data_new)
+surv_gender
+
+# Length category
+surv_lcat <- survfit(Surv(ESY, EStatus) ~ length_categ, data = data_new)
+survdiff(Surv(ESY, EStatus) ~ length_categ, data = data_new)
+surv_lcat
+
+# Employment category
+surv_ecat <- survfit(Surv(ESY, EStatus) ~ emp_categ, data = data_new)
+survdiff(Surv(ESY, EStatus) ~ emp_categ, data = data_new)
+surv_ecat
+
+# Age based on decades
+surv_aged <- survfit(Surv(ESY, EStatus) ~ age_dec, data = data_new)
+survdiff(Surv(ESY, EStatus) ~ age_dec, data = data_new)
+surv_aged
+
+par(mfrow=c(2,2))
+plot(surv_gender, col = 1:2, main = "Gender", ylab = "Survival probability", xlab = "Years")
+plot(surv_lcat, col = 1:3, main = "Employment length", ylab = "Survival probability", xlab = "Years")
+plot(surv_ecat, col = 1:3, main = "Employment Category", ylab = "Survival probability", xlab = "Years")
+plot(surv_aged, col = 1:3, main = "Age by decades", ylab = "Survival probability", xlab = "Years")
 
 
 # Automatic detection of covariants for the model
