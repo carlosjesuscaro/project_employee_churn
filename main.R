@@ -191,12 +191,105 @@ surv_aged <- survfit(Surv(ESY, EStatus) ~ age_dec, data = data_new)
 survdiff(Surv(ESY, EStatus) ~ age_dec, data = data_new)
 surv_aged
 
+# Plotting the survival functions for each covariate
 par(mfrow=c(2,2))
 plot(surv_gender, col = 1:2, main = "Gender", ylab = "Survival probability", xlab = "Years")
 plot(surv_lcat, col = 1:3, main = "Employment length", ylab = "Survival probability", xlab = "Years")
 plot(surv_ecat, col = 1:3, main = "Employment Category", ylab = "Survival probability", xlab = "Years")
 plot(surv_aged, col = 1:3, main = "Age by decades", ylab = "Survival probability", xlab = "Years")
 
+
+# Marginal association
+# 1. Age
+# 1.1 Analyzing age by year
+fit.KM <- coxph(Surv(ESY, EStatus) ~ age, data = data)
+summary(fit.KM)
+plot(survfit(fit.KM), xlab = 'Years after 2006', ylab = 'Survival Rate', conf.int = TRUE)
+# Interpretation
+# The risk of being terminated increases by 5% every extra year in age
+
+# 1.2 Analyzing age by decade
+data <- mutate(data, age_dec_alt = age / 10)
+fit.KM <- coxph(Surv(ESY, EStatus) ~ age_dec_alt, data = data)
+summary(fit.KM)
+plot(survfit(fit.KM), xlab = 'Years after 2006', ylab = 'Survival Rate', conf.int = TRUE)
+# Interpretation
+# The risk of being terminated increases by 63% every extra 10 years in age
+
+# 1.3 Analyzing age by categorical group
+fit.KM <- coxph(Surv(ESY, EStatus) ~ age_dec, data = data)
+summary(fit.KM)
+plot(survfit(fit.KM), xlab = 'Years after 2006', ylab = 'Survival Rate', conf.int = TRUE)
+# Interpretation
+
+# Employment category
+# There is a significant difference among the categories of Employment category:
+# Exec, Management and Worker
+fit.KM <- coxph(Surv(ESY, EStatus) ~ emp_categ, data = data)
+summary(fit.KM)
+plot(survfit(fit.KM), xlab = 'Years after 2006', ylab = 'Survival Rate', conf.int = TRUE, col=1:3)
+legend("bottomleft", legend = c('Exec','Worker','Management'), lty = 1, col = 1:3, text.col = 1:3,
+       title = 'Employment Category')
+
+# Lenght of service
+fit.KM <- coxph(Surv(ESY, EStatus) ~ length_categ, data = data)
+summary(fit.KM)
+plot(survfit(fit.KM), xlab = 'Years after 2006', ylab = 'Survival Rate', conf.int = TRUE, col=1:3)
+legend("bottomleft", legend = c('Exec','Worker','Management'), lty = 1, col = 1:3, text.col = 1:3,
+       title = 'Length of Service Category')
+# Interpretation
+# Employees between 5 and 15 years are 7% less likely to stop working while employees with more than
+# 15 years are 2.3 more likely to stop working
+# There is a significant difference among the categories of Length of Service:
+# A: Less than 5 years
+# B: Between 5 and 15 years
+# C: More than 15 years
+
+# Genre
+fit.KM <- coxph(Surv(ESY, EStatus) ~ gender_short, data = data)
+summary(fit.KM)
+# Interpretation
+# Male employees are 33% less likely to stop working than female employees
+
+# Termination type
+fit.KM <- coxph(Surv(ESY, EStatus) ~ termtype_desc, data = data)
+summary(fit.KM)
+# Interpretation
+# It is almost 3 times more likely that a termination is voluntary versus being
+# involuntary
+
+# Cox Model with all the covariants
+fit.KM <- coxph(Surv(ESY, EStatus) ~ age + length_categ + emp_categ +
+  gender_short + termtype_desc, data = data)
+summary(fit.KM)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+##################################################################
+##################################################################
+##################################################################
 
 # Automatic detection of covariants for the model
 model <- coxph(Surv(ESY, EStatus) ~ age + gender_short + length_categ +
