@@ -202,22 +202,22 @@ plot(surv_aged, col = 1:3, main = "Age by decades", ylab = "Survival probability
 # Marginal association
 # 1. Age
 # 1.1 Analyzing age by year
-fit.KM <- coxph(Surv(ESY, EStatus) ~ age, data = data)
+fit.KM <- coxph(Surv(ESY, EStatus) ~ age, data = data_new)
 summary(fit.KM)
 plot(survfit(fit.KM), xlab = 'Years after 2006', ylab = 'Survival Rate', conf.int = TRUE)
 # Interpretation
 # The risk of being terminated increases by 5% every extra year in age
 
 # 1.2 Analyzing age by decade
-data <- mutate(data, age_dec_alt = age / 10)
-fit.KM <- coxph(Surv(ESY, EStatus) ~ age_dec_alt, data = data)
+data_new <- mutate(data, age_dec_alt = age / 10)
+fit.KM <- coxph(Surv(ESY, EStatus) ~ age_dec_alt, data = data_new)
 summary(fit.KM)
 plot(survfit(fit.KM), xlab = 'Years after 2006', ylab = 'Survival Rate', conf.int = TRUE)
 # Interpretation
 # The risk of being terminated increases by 63% every extra 10 years in age
 
 # 1.3 Analyzing age by categorical group
-fit.KM <- coxph(Surv(ESY, EStatus) ~ age_dec, data = data)
+fit.KM <- coxph(Surv(ESY, EStatus) ~ age_dec, data = data_new)
 summary(fit.KM)
 plot(survfit(fit.KM), xlab = 'Years after 2006', ylab = 'Survival Rate', conf.int = TRUE)
 # Interpretation
@@ -225,14 +225,14 @@ plot(survfit(fit.KM), xlab = 'Years after 2006', ylab = 'Survival Rate', conf.in
 # Employment category
 # There is a significant difference among the categories of Employment category:
 # Exec, Management and Worker
-fit.KM <- coxph(Surv(ESY, EStatus) ~ emp_categ, data = data)
+fit.KM <- coxph(Surv(ESY, EStatus) ~ emp_categ, data = data_new)
 summary(fit.KM)
 plot(survfit(fit.KM), xlab = 'Years after 2006', ylab = 'Survival Rate', conf.int = TRUE, col=1:3)
 legend("bottomleft", legend = c('Exec','Worker','Management'), lty = 1, col = 1:3, text.col = 1:3,
        title = 'Employment Category')
 
 # Lenght of service
-fit.KM <- coxph(Surv(ESY, EStatus) ~ length_categ, data = data)
+fit.KM <- coxph(Surv(ESY, EStatus) ~ length_categ, data = data_new)
 summary(fit.KM)
 plot(survfit(fit.KM), xlab = 'Years after 2006', ylab = 'Survival Rate', conf.int = TRUE, col=1:3)
 legend("bottomleft", legend = c('Exec','Worker','Management'), lty = 1, col = 1:3, text.col = 1:3,
@@ -246,13 +246,13 @@ legend("bottomleft", legend = c('Exec','Worker','Management'), lty = 1, col = 1:
 # C: More than 15 years
 
 # Genre
-fit.KM <- coxph(Surv(ESY, EStatus) ~ gender_short, data = data)
+fit.KM <- coxph(Surv(ESY, EStatus) ~ gender_short, data = data_new)
 summary(fit.KM)
 # Interpretation
 # Male employees are 33% less likely to stop working than female employees
 
 # Termination type
-fit.KM <- coxph(Surv(ESY, EStatus) ~ termtype_desc, data = data)
+fit.KM <- coxph(Surv(ESY, EStatus) ~ termtype_desc, data = data_new)
 summary(fit.KM)
 # Interpretation
 # It is almost 3 times more likely that a termination is voluntary versus being
@@ -260,35 +260,37 @@ summary(fit.KM)
 
 # Cox Model with all the covariants
 fit.KM <- coxph(Surv(ESY, EStatus) ~ age + length_categ + emp_categ +
-  gender_short + termtype_desc, data = data)
+  gender_short + termtype_desc, data = data_new)
 summary(fit.KM)
 
+# Selecting the model
+# 1. Partial likelihood ratio test
+fit0 <- coxph(Surv(ESY, EStatus) ~ 1, data = data_new)
+summary(fit0)
+fit1 <- coxph(Surv(ESY, EStatus) ~ age, data = data_new)
+summary(fit1)
+fit2 <- coxph(Surv(ESY, EStatus) ~ age + length_categ, data = data_new)
+summary(fit2)
+fit3 <- coxph(Surv(ESY, EStatus) ~ age + length_categ + gender_short, data = data_new)
+summary(fit3)
+fit4 <- coxph(Surv(ESY, EStatus) ~ age + length_categ + gender_short + emp_categ, data = data_new)
+summary(fit4)
+fit5 <- coxph(Surv(ESY, EStatus) ~ age + length_categ + gender_short + emp_categ + age_dec, data = data_new)
+summary(fit5)
 
+anova(fit0, fit1)
+anova(fit1, fit2)
+anova(fit2, fit3)
+anova(fit3, fit4)
+anova(fit4, fit5)
+# Every test presents a very small p-value so fit5 is the best model (the model with all covariates)
 
+# 2. AIC
+fits <- list(fit0, fit1, fit2, fit3, fit4, fit5)
+sapply(fits, AIC)
+# The smallest AIC is achieved by fit5 which is the one with all covariates
+summary(step(fit5))
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-##################################################################
-##################################################################
 ##################################################################
 
 # Automatic detection of covariants for the model
@@ -298,123 +300,26 @@ summary(model)
 test_model <- step(model)
 # Based on the outcome,the best model is achieved with all the covariants
 
-# Manual selection of covarinats
-
-
-
-##############################################################################################
-
-# 1. Age
-# 1.1 Analyziong age by year
-fit.KM <- coxph(Surv(ESY, EStatus) ~ age, data = data)
-summary(fit.KM)
-plot(survfit(fit.KM), xlab = 'Years after 2006', ylab = 'Survival Rate', conf.int = TRUE)
-# Interpretation
-# The risk of being terminated increases by 5% every extra year in age
-
-# 1.2 Analyzing age by decade
-data <- mutate(data, age_dec_alt = age / 10)
-fit.KM <- coxph(Surv(ESY, EStatus) ~ age_dec_alt, data = data)
-summary(fit.KM)
-plot(survfit(fit.KM), xlab = 'Years after 2006', ylab = 'Survival Rate', conf.int = TRUE)
-# Interpretation
-# The risk of being terminated increases by 63% every extra 10 years in age
-
-# 1.3 Analyzing age by categorical group
-fit.KM <- coxph(Surv(ESY, EStatus) ~ age_dec, data = data)
-summary(fit.KM)
-plot(survfit(fit.KM), xlab = 'Years after 2006', ylab = 'Survival Rate', conf.int = TRUE)
-# Interpretation
-#
-
-# Employment category
-# There is a significant difference among the categories of Employment category:
-# Exec, Management and Worker
-fit.KM <- coxph(Surv(ESY, EStatus) ~ emp_categ, data = data)
-summary(fit.KM)
-plot(survfit(fit.KM), xlab = 'Years after 2006', ylab = 'Survival Rate', conf.int = TRUE, col=1:3)
-legend("bottomleft", legend = c('Exec','Worker','Management'), lty = 1, col = 1:3, text.col = 1:3,
-      title = 'Employment Category')
-
-# Lenght of service
-fit.KM <- coxph(Surv(ESY, EStatus) ~ length_categ, data = data)
-summary(fit.KM)
-plot(survfit(fit.KM), xlab = 'Years after 2006', ylab = 'Survival Rate', conf.int = TRUE, col=1:3)
-legend("bottomleft", legend = c('Exec','Worker','Management'), lty = 1, col = 1:3, text.col = 1:3,
-       title = 'Length of Service Category')
-# Interpretation
-# Employees between 5 and 15 years are 7% less likely to stop working while employees with more than
-# 15 years are 2.3 more likely to stop working
-# There is a significant difference among the categories of Length of Service:
-# A: Less than 5 years
-# B: Between 5 and 15 years
-# C: More than 15 years
-
-# Genre
-fit.KM <- coxph(Surv(ESY, EStatus) ~ gender_short, data = data)
-summary(fit.KM)
-# Interpretation
-# Male employees are 33% less likely to stop working than
-
-# Termination type
-fit.KM <- coxph(Surv(ESY, EStatus) ~ termtype_desc, data = data)
-summary(fit.KM)
-# Interpretation
-# It is almost 3 times more likelt that a termination is due to a voluntary decision by the
-# employee
-
-# Cox Model with all the covariants
-fit.KM <- coxph(Surv(ESY, EStatus) ~ age + length_categ + emp_categ +
-          gender_short + termtype_desc + age:termtype_desc, data = data)
-summary(fit.KM)
-
-# Model selecttion
-# 1. Partial Likelihood Ratio Test
-fit.KM1 <- coxph(Surv(ESY, EStatus) ~ age + length_categ  +
-  gender_short + termtype_desc, data = data)
-summary(fit.KM1)
-
-fit.KM2 <- coxph(Surv(ESY, EStatus) ~ age + length_categ  +
-  gender_short, data = data)
-summary(fit.KM2)
-
-fit.KM3 <- coxph(Surv(ESY, EStatus) ~ age + length_categ, data = data)
-summary(fit.KM3)
-
-fit.KM4 <- coxph(Surv(ESY, EStatus) ~ age, data = data)
-summary(fit.KM4)
-
-fit.KM5 <- coxph(Surv(ESY, EStatus) ~ 1, data = data)
-summary(fit.KM5)
-
-anova(fit.KM5, fit.KM1) #fit.KM1
-anova(fit.KM4, fit.KM1) #fit.KM1
-anova(fit.KM2, fit.KM1) #fit.KM1
-anova(fit.KM3, fit.KM1) #fit.KM1
-# fit.KM1 is the best model
-
-# 2. AIC method
-fits <- list(fit.KM1, fit.KM2, fit.KM3, fit.KM4, fit.KM5)
-sapply(fits, AIC)
-# fit.KM1 is the best model
-
 # 3. Martingale residual
-data$residual <- residuals(fit.KM1, type = "martingale")
-
-#par(mfrow = c(2, 2), mar = c(5, 4, 4, 2))
+data_new$residual <- residuals(fit5, type = "martingale")
+par(mfrow = c(2, 2), mar = c(5, 4, 4, 2))
 with(data, {
   plot(age, residual)
   lines(lowess(age, residual), lwd = 2)
-
   plot(residual ~ gender_short)
-
   plot(residual ~ termtype_desc)
-
   plot(residual ~ length_categ)
 })
 
-residual.sch <- cox.zph(fit.KM1)
+# Schoenfield residuals
+residual.sch <- cox.zph(fit5)
+residual.sch
 plot(residual.sch)
 
+# Case deletion
+dfbetas <- residuals(fit5, type = 'dfbetas')
+a1 <- sqrt(rowSums(dfbetas^2))
+plot(a1, type = 'h')
+abline(h = 0)
 
 
